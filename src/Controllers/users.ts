@@ -7,8 +7,6 @@ import { checkIfUserExists } from "../Utils";
 
 dotenv.config();
 
-const ACCESS_TOKEN_SECRET = "pilexleouf";
-
 const register = async (req: Request, res: Response) => {
   const userExists = !!(await checkIfUserExists(req));
 
@@ -42,7 +40,6 @@ const register = async (req: Request, res: Response) => {
 };
 
 const login = async (req: Request, res: Response) => {
-  console.log("req.body :>> ", req.body);
   const { password } = req.body;
   const user = await checkIfUserExists(req);
 
