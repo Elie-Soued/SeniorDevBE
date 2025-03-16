@@ -55,8 +55,11 @@ const login = async (req: Request, res: Response) => {
     const passwordIsMatching = await bcrypt.compare(password, user.password);
 
     if (passwordIsMatching) {
-      const accessToken = jwt.sign(user, ACCESS_TOKEN_SECRET);
-      res.send({ accessToken });
+      const accessToken = jwt.sign(
+        user,
+        String(process.env.ACCESS_TOKEN_SECRET)
+      );
+      res.send({ accessToken, code: 200 });
     } else {
       res.json({
         code: 401,
