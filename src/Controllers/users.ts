@@ -11,7 +11,7 @@ const register = async (req: Request, res: Response) => {
   const userExists = !!(await checkIfUserExists(req));
 
   if (userExists) {
-    return res.status(409).json({ error: "Username already exists" });
+    return res.status(409).json({ error: "User already exists" });
   } else {
     try {
       const { email, password, fullname, username } = req.body;
