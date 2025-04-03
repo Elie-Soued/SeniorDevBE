@@ -1,59 +1,85 @@
 import jwt from "jsonwebtoken";
 import { type Request, type Response } from "express";
-import pool from "../dbconfig";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-import { checkIfUserExists } from "../Utils";
+import { type user } from "../types";
 
 dotenv.config();
 
-const register = async (req: Request, res: Response) => {
-  const userExists = !!(await checkIfUserExists(req));
+const sqlite3 = require("sqlite3").verbose();
 
-  if (userExists) {
-    return res.status(409).json({ error: "User already exists" });
+// Create a database connection that you can reuse
+const db = new sqlite3.Database("src/db/seniordev.db", (err: Error) => {
+  if (err) {
+    console.error("Database connection error:", err.message);
   } else {
-    try {
-      const { email, password, fullname, username } = req.body;
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const queryString =
-        'INSERT INTO "users" (email,password, fullname, username) VALUES ($1, $2, $3, $4) RETURNING *';
-      const result = await pool.query(queryString, [
-        email,
-        hashedPassword,
-        fullname,
-        username,
-      ]);
+    console.log("Connected to the SQLite database.");
+  }
+});
 
-      res.json({
-        code: 200,
-        message: "inserted user correctly",
-        data: result.rows[0],
-      });
-    } catch (e) {
-      res.status(500).json({
-        code: 500,
-        message: "Error trying to insert a new user",
-      });
+const register = async (req: Request, res: Response) => {
+  try {
+    const { email, password, fullname, username } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Check if the user already exists
+    const user = await new Promise((resolve, reject) => {
+      db.get(
+        "SELECT * FROM users WHERE username = ?",
+        [username],
+        (err: Error, user: user) => {
+          if (err) return reject(err);
+          resolve(user);
+        }
+      );
+    });
+
+    if (user) {
+      return res.status(409).json({ error: "User already exists" });
     }
+
+    // If user does not exist add it to the database
+    await new Promise((resolve, reject) => {
+      db.run(
+        "INSERT INTO users (username, fullname, password, email) VALUES (?, ?, ?, ?)",
+        [username, fullname, hashedPassword, email],
+        function (err: Error) {
+          if (err) return reject(err);
+          resolve(true);
+        }
+      );
+    });
+
+    res.status(200).json({ message: "User registered successfully" });
+  } catch (error: unknown) {
+    console.error("Registration error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 const login = async (req: Request, res: Response) => {
-  const { password } = req.body;
-  const user = await checkIfUserExists(req);
-
-  if (user === undefined) {
-    res.json({
-      code: 404,
-      message: "Account does not exist",
-    });
-    return;
-  }
-
   try {
+    const { username, password } = req.body;
+
+    // Check that the username exists in the database
+    const user: user = await new Promise((resolve, reject) => {
+      db.get(
+        "SELECT * FROM users WHERE username = ?",
+        [username],
+        (err: Error, user: user) => {
+          if (err) return reject(err);
+          resolve(user);
+        }
+      );
+    });
+
+    if (!user) {
+      return res.json({ code: 404, message: "Account does not exist" });
+    }
+
     const passwordIsMatching = await bcrypt.compare(password, user.password);
 
+    // Make sure the password matches
     if (passwordIsMatching) {
       const accessToken = jwt.sign(
         user,
@@ -67,20 +93,10 @@ const login = async (req: Request, res: Response) => {
       });
       return;
     }
-  } catch (e) {
-    res.status(500).send();
+  } catch (error: unknown) {
+    console.error("login error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-const getAll = async (req: Request, res: Response) => {
-  try {
-    const response = await pool.query("SELECT * FROM users;");
-    res.status(200).json(response.rows); // Return all rows
-    console.log("Data retrieved:", response.rows);
-  } catch (error) {
-    console.error("Error retrieving data:", error);
-    res.status(500).json({ error: "An error occurred while fetching users" });
-  }
-};
-
-export { register, login, getAll };
+export { register, login };
