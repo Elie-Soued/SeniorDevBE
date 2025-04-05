@@ -85,7 +85,7 @@ const login = async (req: Request, res: Response) => {
         user,
         String(process.env.ACCESS_TOKEN_SECRET)
       );
-      res.send({ accessToken, code: 200 });
+      res.send({ accessToken, code: 200, user });
     } else {
       res.json({
         code: 401,
