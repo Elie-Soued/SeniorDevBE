@@ -3,19 +3,9 @@ import { type Request, type Response } from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import { type user } from "../types";
+import db from "../db/databse";
 
 dotenv.config();
-
-const sqlite3 = require("sqlite3").verbose();
-
-// Create a database connection that you can reuse
-const db = new sqlite3.Database("src/db/seniordev.db", (err: Error) => {
-  if (err) {
-    console.error("Database connection error:", err.message);
-  } else {
-    console.log("Connected to the SQLite database.");
-  }
-});
 
 const register = async (req: Request, res: Response) => {
   try {
