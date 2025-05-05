@@ -74,7 +74,7 @@ const login = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.json({ code: 404, message: "Account does not exist" });
+      return res.json({ code: 404, message: "Invalid username or password" });
     }
 
     const passwordIsMatching = await bcrypt.compare(password, user.password);
@@ -89,7 +89,7 @@ const login = async (req: Request, res: Response) => {
     } else {
       res.json({
         code: 401,
-        message: "Wrong Password",
+        message: "Invalid username or password",
       });
       return;
     }
