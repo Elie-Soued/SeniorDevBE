@@ -116,12 +116,29 @@ const updateTask = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     const userID = req.body.user.id;
+    const content = req.body.updatedTask;
 
-    await db.run("DELETE from tasks WHERE id = (?) AND userID = (?)", [
-      id,
-      userID,
-    ]);
-    res.status(200).json({ message: "Task was removed successfully" });
+    await db.run(
+      "UPDATE tasks SET content = (?) WHERE id = (?) AND userID = (?)",
+      [content, id, userID]
+    );
+
+    const tasks = await new Promise((resolve, reject) => {
+      db.all(
+        "SELECT * FROM tasks WHERE userID = ?",
+        [userID],
+        (err: Error, tasks: any) => {
+          if (err) return reject(err);
+          resolve(tasks);
+        }
+      );
+    });
+
+    if (!tasks) {
+      return res.send({ tasks: [] });
+    }
+
+    res.send({ tasks });
   } catch (error) {
     console.error("login error:", error);
     res.status(500).json({ error: "Internal Server Error" });
