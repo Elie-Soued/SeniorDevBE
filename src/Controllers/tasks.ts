@@ -38,7 +38,23 @@ const addTask = async (req: Request, res: Response) => {
       newTask,
       id,
     ]);
-    res.status(200).json({ message: "Task was successfully added" });
+
+    const tasks = await new Promise((resolve, reject) => {
+      db.all(
+        "SELECT * FROM tasks WHERE userID = ?",
+        [id],
+        (err: Error, tasks: any) => {
+          if (err) return reject(err);
+          resolve(tasks);
+        }
+      );
+    });
+
+    if (!tasks) {
+      return res.send({ tasks: [] });
+    }
+
+    res.send({ tasks });
   } catch (error) {
     console.error("login error:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -73,7 +89,23 @@ const deleteTask = async (req: Request, res: Response) => {
       id,
       userID,
     ]);
-    res.status(200).json({ message: "Task was removed successfully" });
+
+    const tasks = await new Promise((resolve, reject) => {
+      db.all(
+        "SELECT * FROM tasks WHERE userID = ?",
+        [userID],
+        (err: Error, tasks: any) => {
+          if (err) return reject(err);
+          resolve(tasks);
+        }
+      );
+    });
+
+    if (!tasks) {
+      return res.send({ tasks: [] });
+    }
+
+    res.send({ tasks });
   } catch (error) {
     console.error("login error:", error);
     res.status(500).json({ error: "Internal Server Error" });
