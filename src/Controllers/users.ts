@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import { type user } from "../types";
 import db from "../db/databse";
+import { addDefaultTasks } from "./tasks";
+import { RunResult } from "sqlite3";
 
 dotenv.config();
 
@@ -29,16 +31,19 @@ const register = async (req: Request, res: Response) => {
     }
 
     // If user does not exist add it to the database
-    await new Promise((resolve, reject) => {
+
+    const insertedId = await new Promise<number>((resolve, reject) => {
       db.run(
         "INSERT INTO users (username, fullname, password, email) VALUES (?, ?, ?, ?)",
         [username, fullname, hashedPassword, email],
-        function (err: Error) {
+        function (this: RunResult, err: Error | null) {
           if (err) return reject(err);
-          resolve(true);
+          resolve(this.lastID);
         }
       );
     });
+
+    await addDefaultTasks(res, insertedId);
 
     res.status(200).json({ message: "User registered successfully" });
   } catch (error: unknown) {

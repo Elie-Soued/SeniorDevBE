@@ -145,4 +145,25 @@ const updateTask = async (req: Request, res: Response) => {
   }
 };
 
-export { getAllTasks, authenticateToken, addTask, deleteTask, updateTask };
+const addDefaultTasks = async (res: Response, id: number) => {
+  try {
+    for (let i = 0; i < 5; i++) {
+      await db.run("INSERT INTO tasks (content, userID) VALUES (?, ?)", [
+        "",
+        id,
+      ]);
+    }
+  } catch (error) {
+    console.error("login error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export {
+  getAllTasks,
+  authenticateToken,
+  addTask,
+  deleteTask,
+  updateTask,
+  addDefaultTasks,
+};
