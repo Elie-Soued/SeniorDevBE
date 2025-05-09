@@ -23,7 +23,7 @@ const getAllTasks = async (req: Request, res: Response) => {
       return res.send({ tasks: [] });
     }
 
-    res.send({ tasks });
+    res.send(tasks);
   } catch (error) {
     console.error("login error:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -54,7 +54,7 @@ const addTask = async (req: Request, res: Response) => {
       return res.send({ tasks: [] });
     }
 
-    res.send({ tasks });
+    res.send(tasks);
   } catch (error) {
     console.error("login error:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -105,7 +105,7 @@ const deleteTask = async (req: Request, res: Response) => {
       return res.send({ tasks: [] });
     }
 
-    res.send({ tasks });
+    res.send(tasks);
   } catch (error) {
     console.error("login error:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -138,7 +138,7 @@ const updateTask = async (req: Request, res: Response) => {
       return res.send({ tasks: [] });
     }
 
-    res.send({ tasks });
+    res.send(tasks);
   } catch (error) {
     console.error("login error:", error);
     res.status(500).json({ error: "Internal Server Error" });
