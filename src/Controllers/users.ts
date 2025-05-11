@@ -54,14 +54,18 @@ const login = async (req: Request, res: Response) => {
         res.send({ accessToken });
       } else {
         res.json({
-          code: 401,
+          code: 404,
           message: "Invalid username or password",
         });
-        return;
       }
+    } else {
+      res.json({
+        code: 404,
+        message: "Invalid username or password",
+      });
     }
   } catch (error: unknown) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 

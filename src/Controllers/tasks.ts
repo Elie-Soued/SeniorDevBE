@@ -81,11 +81,21 @@ const updateTask = async (req: Request, res: Response) => {
   try {
     const userID = req.body.user.id;
     const content = req.body.updatedTask;
+    const checked = req.body.checkedTask;
 
-    await db.run(
-      "UPDATE tasks SET content = (?) WHERE id = (?) AND userID = (?)",
-      [content, id, userID]
-    );
+    if (content) {
+      await db.run(
+        "UPDATE tasks SET content = (?) WHERE id = (?) AND userID = (?)",
+        [content, id, userID]
+      );
+    }
+
+    if (checked !== undefined) {
+      await db.run(
+        "UPDATE tasks SET checked = (?) WHERE id = (?) AND userID = (?)",
+        [checked, id, userID]
+      );
+    }
 
     getAllTasks(req, res);
   } catch (error) {
