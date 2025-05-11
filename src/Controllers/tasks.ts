@@ -8,24 +8,21 @@ dotenv.config();
 const getAllTasks = async (req: Request, res: Response) => {
   try {
     const { id } = req.body.user;
-    const tasks = await new Promise((resolve, reject) => {
-      db.all(
-        "SELECT * FROM tasks WHERE userID = ?",
-        [id],
-        (err: Error, tasks: any) => {
-          if (err) return reject(err);
-          resolve(tasks);
+
+    db.all(
+      "SELECT * FROM tasks WHERE userID = ?",
+      [id],
+      (err: Error, tasks: any) => {
+        if (err) {
+          res
+            .status(500)
+            .json({ error: "Could not get the tasks for that user" });
         }
-      );
-    });
 
-    if (!tasks) {
-      return res.send({ tasks: [] });
-    }
-
-    res.send(tasks);
+        res.send(tasks);
+      }
+    );
   } catch (error) {
-    console.error("login error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -39,25 +36,9 @@ const addTask = async (req: Request, res: Response) => {
       id,
     ]);
 
-    const tasks = await new Promise((resolve, reject) => {
-      db.all(
-        "SELECT * FROM tasks WHERE userID = ?",
-        [id],
-        (err: Error, tasks: any) => {
-          if (err) return reject(err);
-          resolve(tasks);
-        }
-      );
-    });
-
-    if (!tasks) {
-      return res.send({ tasks: [] });
-    }
-
-    res.send(tasks);
+    getAllTasks(req, res);
   } catch (error) {
-    console.error("login error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "could not add task" });
   }
 };
 
@@ -84,31 +65,14 @@ const deleteTask = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     const userID = req.body.user.id;
-
     await db.run("DELETE from tasks WHERE id = (?) AND userID = (?)", [
       id,
       userID,
     ]);
 
-    const tasks = await new Promise((resolve, reject) => {
-      db.all(
-        "SELECT * FROM tasks WHERE userID = ?",
-        [userID],
-        (err: Error, tasks: any) => {
-          if (err) return reject(err);
-          resolve(tasks);
-        }
-      );
-    });
-
-    if (!tasks) {
-      return res.send({ tasks: [] });
-    }
-
-    res.send(tasks);
+    getAllTasks(req, res);
   } catch (error) {
-    console.error("login error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "could not delete task" });
   }
 };
 
@@ -123,25 +87,9 @@ const updateTask = async (req: Request, res: Response) => {
       [content, id, userID]
     );
 
-    const tasks = await new Promise((resolve, reject) => {
-      db.all(
-        "SELECT * FROM tasks WHERE userID = ?",
-        [userID],
-        (err: Error, tasks: any) => {
-          if (err) return reject(err);
-          resolve(tasks);
-        }
-      );
-    });
-
-    if (!tasks) {
-      return res.send({ tasks: [] });
-    }
-
-    res.send(tasks);
+    getAllTasks(req, res);
   } catch (error) {
-    console.error("login error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Could not update task" });
   }
 };
 
@@ -154,8 +102,7 @@ const addDefaultTasks = async (res: Response, id: number) => {
       ]);
     }
   } catch (error) {
-    console.error("login error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Could not add default tasks" });
   }
 };
 
