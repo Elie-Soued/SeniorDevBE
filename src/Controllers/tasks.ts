@@ -8,18 +8,43 @@ dotenv.config();
 const getAllTasks = async (req: Request, res: Response) => {
   try {
     const { id } = req.body.user;
+    const limit = parseInt(req.query.limit as string, 10) || 5;
+    let offset = parseInt(req.query.offset as string, 10) || 0;
 
-    db.all(
-      "SELECT * FROM tasks WHERE userID = ?",
+    db.get(
+      "SELECT COUNT(*) AS total FROM tasks WHERE userID = ?",
       [id],
-      (err: Error, tasks: any) => {
+      (err: Error, countResult: any) => {
         if (err) {
-          res
+          return res
             .status(500)
-            .json({ error: "Could not get the tasks for that user" });
+            .json({ error: "Could not get the total count of tasks" });
         }
 
-        res.send(tasks);
+        const totalCount = countResult.total;
+
+        if (totalCount === limit) {
+          offset = 0;
+        }
+
+        db.all(
+          "SELECT * FROM tasks WHERE userID = ? ORDER BY id DESC LIMIT ? OFFSET ?",
+          [id, limit, offset],
+          (err: Error, tasks: any) => {
+            if (err) {
+              res
+                .status(500)
+                .json({ error: "Could not get the tasks for that user" });
+            }
+
+            res.json({
+              tasks,
+              meta: {
+                totalCount,
+              },
+            });
+          }
+        );
       }
     );
   } catch (error) {
