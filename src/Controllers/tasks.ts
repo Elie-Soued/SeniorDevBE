@@ -141,6 +141,17 @@ const addDefaultTasks = async (res: Response, id: number) => {
   }
 };
 
+const deleteAllTasks = async (req: Request, res: Response) => {
+  try {
+    const userID = req.body.user.id;
+    await db.run("DELETE  from tasks WHERE userID = (?)", [userID]);
+
+    getAllTasks(req, res);
+  } catch (error) {
+    res.status(500).json({ error: "could not delete task" });
+  }
+};
+
 export {
   getAllTasks,
   authenticateToken,
@@ -148,4 +159,5 @@ export {
   deleteTask,
   updateTask,
   addDefaultTasks,
+  deleteAllTasks,
 };
