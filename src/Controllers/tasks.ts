@@ -108,7 +108,7 @@ const updateTask = async (req: Request, res: Response) => {
     const content = req.body.updatedTask;
     const checked = req.body.checkedTask;
 
-    if (content) {
+    if (content !== undefined) {
       await db.run(
         "UPDATE tasks SET content = (?) WHERE id = (?) AND userID = (?)",
         [content, id, userID]
